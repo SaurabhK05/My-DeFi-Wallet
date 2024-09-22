@@ -18,7 +18,7 @@ import { useAppSelector } from "@/lib/hooks";
 export function WalletDetails() {
   const [showPrivateKey, setShowPrivateKey] = useState(false);
   const [showSecretPhrase, setShowSecretPhrase] = useState(false);
-  const walletSecret = useAppSelector((state: any) => state.wallet);
+  const walletSecret = useAppSelector((state) => state.wallet);
 
   const walletDetails = {
     name: "My DeFi Wallet",
