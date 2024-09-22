@@ -77,9 +77,9 @@ export function WalletInfoAndAdd() {
                       });
                     }}
                   >
-                    {renderSecret.map((phrase) => {
+                    {renderSecret.map((phrase, index) => {
                       return (
-                        <Card className="w-[23.5%] m-1">
+                        <Card className="w-[23.5%] m-1" key={index}>
                           <CardHeader className="p-4">
                             <CardTitle className="text-base font-semibold">
                               {phrase}
