@@ -14,11 +14,13 @@ import { Label } from "@/components/ui/label";
 import { AlertCircle, Copy, Eye, EyeOff } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAppSelector } from "@/lib/hooks";
+import { useToast } from "@/hooks/use-toast";
 
 export function WalletDetails() {
   const [showPrivateKey, setShowPrivateKey] = useState(false);
   const [showSecretPhrase, setShowSecretPhrase] = useState(false);
   const walletSecret = useAppSelector((state) => state.wallet);
+  const { toast } = useToast();
 
   const walletDetails = {
     name: "My DeFi Wallet",
@@ -76,7 +78,12 @@ export function WalletDetails() {
                   variant="outline"
                   size="icon"
                   className="ml-2"
-                  onClick={() => copyToClipboard(walletDetails.publicKey)}
+                  onClick={() => {
+                    toast({
+                      title: "Public Key Copied",
+                    });
+                    copyToClipboard(walletDetails.publicKey);
+                  }}
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
@@ -111,7 +118,12 @@ export function WalletDetails() {
                   variant="outline"
                   size="icon"
                   className="ml-2"
-                  onClick={() => copyToClipboard(walletDetails.privateKey)}
+                  onClick={() => {
+                    copyToClipboard(walletDetails.privateKey);
+                    toast({
+                      title: "Private Key Copied",
+                    });
+                  }}
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
@@ -149,7 +161,12 @@ export function WalletDetails() {
                   variant="outline"
                   size="icon"
                   className="ml-2"
-                  onClick={() => copyToClipboard(walletDetails.secretPhrase)}
+                  onClick={() => {
+                    toast({
+                      title: "Secret Phrase Copied",
+                    });
+                    copyToClipboard(walletDetails.secretPhrase);
+                  }}
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
