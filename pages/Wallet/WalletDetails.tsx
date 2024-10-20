@@ -15,8 +15,11 @@ import { AlertCircle, Copy, Eye, EyeOff } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAppSelector } from "@/lib/hooks";
 import { useToast } from "@/hooks/use-toast";
+import { WALLET_ALERT_DESC } from "@/constants/wallet/pageConstant";
 
-export function WalletDetails() {
+export function WalletDetails(props: { secretPhrase: string[] }) {
+  const { secretPhrase } = props;
+
   const [showPrivateKey, setShowPrivateKey] = useState(false);
   const [showSecretPhrase, setShowSecretPhrase] = useState(false);
   const walletSecret = useAppSelector((state) => state.wallet);
@@ -26,14 +29,11 @@ export function WalletDetails() {
     name: "My DeFi Wallet",
     publicKey: walletSecret.publicKey,
     privateKey: walletSecret.privateKey,
-    secretPhrase:
-      "witch collapse practice feed shame open despair creek road again ice least",
+    secretPhrase: secretPhrase.join(" "),
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    // In a real app, you'd want to show a toast notification here
-    console.log("'Copied to clipboard'");
   };
 
   return (
@@ -49,11 +49,7 @@ export function WalletDetails() {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Warning</AlertTitle>
-            <AlertDescription>
-              Never share your private key or secret phrase with anyone.
-              Displaying them here is for demonstration purposes only and is not
-              secure.
-            </AlertDescription>
+            <AlertDescription>{WALLET_ALERT_DESC}</AlertDescription>
           </Alert>
 
           <div className="space-y-4">

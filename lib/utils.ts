@@ -22,7 +22,6 @@ export function generateSolanaKeys(mnemonic: string): {
   const derivedSeed = derivePath(derivationPath, seed.toString("hex")).key;
 
   const keyPair = sign.keyPair.fromSeed(derivedSeed);
-  console.log(keyPair);
 
   const privateKey = bs58.encode(keyPair.secretKey);
   const publicKey = bs58.encode(keyPair.publicKey);

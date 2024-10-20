@@ -15,7 +15,7 @@ import { generateMnemonic } from "bip39";
 import { generateSolanaKeys } from "@/lib/utils";
 import { useAppDispatch } from "@/lib/hooks";
 import { walletSecret } from "@/lib/features/walletSlice";
-import { WalletDetails } from "./wallet-details";
+import { WalletDetails } from "./WalletDetails";
 import {
   Accordion,
   AccordionContent,
@@ -23,6 +23,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
+import Footer from "@/components/footer/footer";
+import { WALLET_ABOUT_DESC } from "@/constants/wallet/pageConstant";
 
 export function WalletInfoAndAdd() {
   const [walletSecretPhrase, setwalletSecratPhrase] = useState("");
@@ -38,7 +40,6 @@ export function WalletInfoAndAdd() {
     setwalletSecratPhrase(mnemonic);
     const phraseArray = mnemonic.split(" ");
     setRenderSecret(phraseArray);
-    console.log(phraseArray);
 
     const { publicKey, privateKey } = generateSolanaKeys(mnemonic);
 
@@ -99,10 +100,7 @@ export function WalletInfoAndAdd() {
                     About Our Wallet
                   </h2>
                   <p className="text-zinc-500 dark:text-zinc-400">
-                    Our DeFi wallet is a secure, non-custodial solution for
-                    managing your digital assets. It supports multiple
-                    blockchains and provides seamless integration with various
-                    DeFi protocols.
+                    {WALLET_ABOUT_DESC}
                   </p>
                 </section>
 
@@ -157,12 +155,10 @@ export function WalletInfoAndAdd() {
               </div>
             </div>
           </CardContent>
-          {renderWallet && <WalletDetails />}
+          {renderWallet && <WalletDetails secretPhrase={renderSecret} />}
         </Card>
       </main>
-      <footer className="py-4 text-center text-sm text-white dark:text-zinc-400 bg-black">
-        © 2024 0xSK. All rights reserved.
-      </footer>
+      <Footer />
     </div>
   );
 }
