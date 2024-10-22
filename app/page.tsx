@@ -1,9 +1,9 @@
-import { WalletInfoAndAdd } from "@/pages/Wallet/WalletInfoAndAdd";
+import { CryptoWallet } from "@/pages/CryptoWallet/CryptoWallet";
 
 export default function Page() {
   return (
     <>
-      <WalletInfoAndAdd />
+      <CryptoWallet />
     </>
   );
 }
