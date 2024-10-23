@@ -15,7 +15,7 @@ import { generateMnemonic } from "bip39";
 import { generateSolanaKeys } from "@/lib/utils";
 import { useAppDispatch } from "@/lib/hooks";
 import { walletSecret } from "@/lib/features/walletSlice";
-import { WalletDetails } from "./WalletDetails";
+import WalletDetails from "./WalletDetails";
 import {
   Accordion,
   AccordionContent,
@@ -26,14 +26,25 @@ import { useToast } from "@/hooks/use-toast";
 import Footer from "@/components/footer/footer";
 import { WALLET_ABOUT_DESC } from "@/constants/wallet/pageConstant";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TransferCrypto } from "../TransferCrypto/TransferCrypto";
+import TransferCrypto from "../TransferCrypto/TransferCrypto";
+import {
+  ConnectionProvider,
+  WalletProvider,
+} from "@solana/wallet-adapter-react";
+import {
+  WalletDisconnectButton,
+  WalletModalProvider,
+  WalletMultiButton,
+} from "@solana/wallet-adapter-react-ui";
 
-export function CryptoWallet() {
+export default function CryptoWallet() {
   const [walletSecretPhrase, setwalletSecratPhrase] = useState("");
   const [renderSecret, setRenderSecret] = useState<string[]>([]);
   const [renderWallet, setRenderWallet] = useState(false);
   const dispatch = useAppDispatch();
   const { toast } = useToast();
+
+  const endpoint = process.env.NEXT_PUBLIC_RPC_ENDPOINT ?? "";
 
   const handleAddWallet = async () => {
     if (!walletSecretPhrase) {
@@ -167,7 +178,20 @@ export function CryptoWallet() {
             </Card>
           </TabsContent>
           <TabsContent value="wallet_transaction">
-            <TransferCrypto />
+            <ConnectionProvider endpoint={endpoint}>
+              <WalletProvider wallets={[]} autoConnect>
+                <WalletModalProvider>
+                  <div
+                    className="bg-black"
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <WalletMultiButton />
+                    <WalletDisconnectButton />
+                  </div>
+                  <TransferCrypto />
+                </WalletModalProvider>
+              </WalletProvider>
+            </ConnectionProvider>
           </TabsContent>
         </Tabs>
       </main>

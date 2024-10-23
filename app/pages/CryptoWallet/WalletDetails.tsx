@@ -17,7 +17,7 @@ import { useAppSelector } from "@/lib/hooks";
 import { useToast } from "@/hooks/use-toast";
 import { WALLET_ALERT_DESC } from "@/constants/wallet/pageConstant";
 
-export function WalletDetails(props: { secretPhrase: string[] }) {
+export default function WalletDetails(props: { secretPhrase: string[] }) {
   const { secretPhrase } = props;
 
   const [showPrivateKey, setShowPrivateKey] = useState(false);

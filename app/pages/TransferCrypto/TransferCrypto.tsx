@@ -13,15 +13,27 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import "@solana/wallet-adapter-react-ui/styles.css";
+import {
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  TransferParams,
+} from "@solana/web3.js";
 
-export function TransferCrypto() {
+export default function TransferCrypto() {
+  const wallet = useWallet();
+  console.log(wallet);
+
+  const { connection } = useConnection();
+
   const [recipient, setRecipient] = useState("");
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState<number>();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!recipient || !amount || !crypto) {
+  const handleSubmit = async () => {
+    if (!recipient || !amount) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -29,15 +41,26 @@ export function TransferCrypto() {
       });
       return;
     }
+    if (wallet.publicKey) {
+      const transaction = new Transaction();
+      const transferInfo: TransferParams = {
+        fromPubkey: wallet.publicKey,
+        toPubkey: new PublicKey(recipient),
+        lamports: amount * LAMPORTS_PER_SOL,
+      };
+      transaction.add(SystemProgram.transfer(transferInfo));
 
-    toast({
-      title: "Transaction Initiated",
-      description: `Sending ${amount} ${crypto} to ${recipient}`,
-    });
+      await wallet.sendTransaction(transaction, connection);
+
+      toast({
+        title: "Transaction Initiated",
+        description: `Sending ${amount} to ${recipient}`,
+      });
+    }
 
     // Reset form
     setRecipient("");
-    setAmount("");
+    setAmount(0);
   };
 
   return (
@@ -67,7 +90,7 @@ export function TransferCrypto() {
                 type="number"
                 placeholder="0.00"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => setAmount(parseFloat(e.target.value))}
               />
             </div>
           </div>
@@ -78,7 +101,7 @@ export function TransferCrypto() {
           variant="outline"
           onClick={() => {
             setRecipient("");
-            setAmount("");
+            setAmount(0);
           }}
         >
           Cancel
