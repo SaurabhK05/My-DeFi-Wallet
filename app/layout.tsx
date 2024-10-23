@@ -3,9 +3,9 @@
 import localFont from "next/font/local";
 import { Provider } from "react-redux";
 import { makeStore, AppStore } from "@/lib/store";
-import "./globals.css";
 import { useRef } from "react";
 import { Toaster } from "@/components/ui/toaster";
+import "./globals.css";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
