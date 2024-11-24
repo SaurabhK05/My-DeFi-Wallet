@@ -36,13 +36,17 @@ import {
   WalletModalProvider,
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
+import { Switch } from "@/components/ui/switch";
+import useTheme from "@/hooks/useTheme";
 
 export default function CryptoWallet() {
   const [walletSecretPhrase, setwalletSecratPhrase] = useState("");
   const [renderSecret, setRenderSecret] = useState<string[]>([]);
   const [renderWallet, setRenderWallet] = useState(false);
+
   const dispatch = useAppDispatch();
   const { toast } = useToast();
+  const { toggleTheme, theme } = useTheme();
 
   const endpoint = process.env.NEXT_PUBLIC_RPC_ENDPOINT ?? "";
 
@@ -65,6 +69,10 @@ export default function CryptoWallet() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col dark:bg-zinc-950">
+      <div className="flex justify-end p-4">
+        <p className="dark:text-white text-black mr-2">{theme}</p>
+        <Switch onClick={toggleTheme} />
+      </div>
       <main className="flex-grow flex items-center justify-center p-4">
         <Tabs defaultValue="wallet_dashboard">
           <TabsList>
