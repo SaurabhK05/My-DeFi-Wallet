@@ -36,8 +36,8 @@ import {
   WalletModalProvider,
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
-import { Switch } from "@/components/ui/switch";
-import useTheme from "@/hooks/useTheme";
+import { TogglDarkMode } from "@/components/togglDarkMode/TogglDarkMode";
+import { CryptoSwap } from "./CryptoSwap";
 
 export default function CryptoWallet() {
   const [walletSecretPhrase, setwalletSecratPhrase] = useState("");
@@ -46,7 +46,6 @@ export default function CryptoWallet() {
 
   const dispatch = useAppDispatch();
   const { toast } = useToast();
-  const { toggleTheme, theme } = useTheme();
 
   const endpoint = process.env.NEXT_PUBLIC_RPC_ENDPOINT ?? "";
 
@@ -69,17 +68,18 @@ export default function CryptoWallet() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col dark:bg-zinc-950">
-      <div className="flex justify-end p-4">
-        <p className="dark:text-white text-black mr-2">{theme}</p>
-        <Switch onClick={toggleTheme} />
-      </div>
+      <TogglDarkMode />
       <main className="flex-grow flex items-center justify-center p-4">
         <Tabs defaultValue="wallet_dashboard">
           <TabsList>
             <TabsTrigger value="wallet_dashboard">Wallet</TabsTrigger>
             <TabsTrigger value="wallet_transaction">Send Crypto</TabsTrigger>
+            <TabsTrigger value="swap_crypto">Swap Crypto</TabsTrigger>
           </TabsList>
-          <TabsContent value="wallet_dashboard">
+          <TabsContent
+            value="wallet_dashboard"
+            className="w-full max-w-4xl min-h-[500px]"
+          >
             <Card className="w-full max-w-2xl">
               <CardHeader>
                 <CardTitle className="text-2xl font-bold">
@@ -185,7 +185,10 @@ export default function CryptoWallet() {
               {renderWallet && <WalletDetails secretPhrase={renderSecret} />}
             </Card>
           </TabsContent>
-          <TabsContent value="wallet_transaction">
+          <TabsContent
+            value="wallet_transaction"
+            className="w-full max-w-4xl min-h-[500px]"
+          >
             <ConnectionProvider endpoint={endpoint}>
               <WalletProvider wallets={[]} autoConnect>
                 <WalletModalProvider>
@@ -200,6 +203,12 @@ export default function CryptoWallet() {
                 </WalletModalProvider>
               </WalletProvider>
             </ConnectionProvider>
+          </TabsContent>
+          <TabsContent
+            value="swap_crypto"
+            className="w-full max-w-4xl min-h-[500px]"
+          >
+            <CryptoSwap />
           </TabsContent>
         </Tabs>
       </main>
