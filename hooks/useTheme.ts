@@ -2,22 +2,25 @@
 import { useEffect, useState } from "react";
 
 export default function useTheme() {
-  const [theme, setTheme] = useState(
-    typeof window !== "undefined" && localStorage.theme
-      ? localStorage.theme
-      : "light"
-  );
+  const [theme, setTheme] = useState("light"); // Default to light
+  const [mounted, setMounted] = useState(false); // To avoid hydration mismatch
 
   useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove(theme === "light" ? "dark" : "light");
-    root.classList.add(theme);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+    setMounted(true); // Mark as mounted
+    const savedTheme = localStorage.getItem("theme") || "light";
+    setTheme(savedTheme);
+    document.documentElement.classList.add(savedTheme);
+  }, []);
 
   const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light");
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+
+    const root = document.documentElement;
+    root.classList.remove(theme);
+    root.classList.add(newTheme);
   };
 
-  return { theme, toggleTheme };
+  return { theme, toggleTheme, mounted };
 }
