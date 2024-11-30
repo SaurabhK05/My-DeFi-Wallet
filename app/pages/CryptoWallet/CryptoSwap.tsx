@@ -21,35 +21,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
+import { ToolTip } from "@/components/ToolTip/ToolTip";
+import { cryptoOptions, fromMintAddress } from "./pageConstants";
+import axios, { AxiosError } from "axios";
+import { CryptoOption } from "@/interface/index.exports";
+import { LAMPORTS_PER_SOL, VersionedTransaction } from "@solana/web3.js";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
-const cryptoOptions = [
-  { value: "BTC", label: "Bitcoin (BTC)" },
-  { value: "ETH", label: "Ethereum (ETH)" },
-  { value: "USDT", label: "Tether (USDT)" },
-  { value: "BNB", label: "Binance Coin (BNB)" },
-  { value: "XRP", label: "Ripple (XRP)" },
-];
+type ErrorResponse = {
+  error: string;
+};
 
 export function CryptoSwap() {
-  const [fromCrypto, setFromCrypto] = useState("");
+  const wallet = useWallet();
+  const { connection } = useConnection();
+
+  const [fromCrypto, setFromCrypto] = useState("Solana");
   const [toCrypto, setToCrypto] = useState("");
   const [amount, setAmount] = useState("");
-  const [estimatedReceived, setEstimatedReceived] = useState("0");
-
-  const handleSwap = () => {
-    setFromCrypto(toCrypto);
-    setToCrypto(fromCrypto);
-  };
+  const [quoteReceived, setQuoteReceived] = useState();
+  const [estimatedReceived, setEstimatedReceived] = useState<string>();
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
-    // In a real application, you would call an API to get the actual exchange rate
-    // This is a simplified example
-    const mockExchangeRate = 1.5;
-    setEstimatedReceived((parseFloat(value) * mockExchangeRate).toFixed(6));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!fromCrypto || !toCrypto || !amount) {
@@ -61,19 +58,90 @@ export function CryptoSwap() {
       return;
     }
 
-    // Here you would typically integrate with a cryptocurrency exchange API
-    // For this example, we'll just show a success message
+    try {
+      // Ensure wallet is connected
+      if (!wallet || !wallet.connected) {
+        throw new Error("Wallet is not connected");
+      }
+
+      const {
+        data: { swapTransaction },
+      } = await axios.post("https://quote-api.jup.ag/v6/swap", {
+        quoteResponse: quoteReceived,
+        userPublicKey: wallet?.publicKey?.toString(),
+      });
+
+      const swapTransactionBuf = Buffer.from(swapTransaction, "base64");
+      const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
+
+      // Ensure signTransaction method is available
+      if (!wallet.signTransaction) {
+        throw new Error("Wallet does not support signing transactions");
+      }
+
+      const signedTransaction = await wallet.signTransaction(transaction);
+      const latestBlockHash = await connection.getLatestBlockhash();
+
+      // Execute the transaction
+      const rawTransaction = signedTransaction.serialize();
+      const txid = await connection.sendRawTransaction(rawTransaction, {
+        skipPreflight: true,
+        maxRetries: 2,
+      });
+
+      await connection.confirmTransaction({
+        blockhash: latestBlockHash.blockhash,
+        lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+        signature: txid,
+      });
+    } catch (error) {
+      const axiosError = error as AxiosError;
+
+      toast({
+        title: "Swap Failed",
+        description: (axiosError.response?.data as ErrorResponse).error,
+        variant: "destructive",
+      });
+    }
+
     toast({
       title: "Swap Initiated",
       description: `Swapping ${amount} ${fromCrypto} to approximately ${estimatedReceived} ${toCrypto}`,
     });
-
-    // Reset form
-    setFromCrypto("");
-    setToCrypto("");
-    setAmount("");
-    setEstimatedReceived("0");
   };
+
+  async function getTokenQuote(val: string) {
+    setToCrypto(val);
+
+    const selectedToken: CryptoOption | undefined = cryptoOptions.find(
+      (token: CryptoOption) => token.value === val
+    );
+
+    try {
+      if (selectedToken) {
+        const { data: quoteResponse } = await axios.get(
+          `https://quote-api.jup.ag/v6/quote?inputMint=${fromMintAddress}&outputMint=${
+            selectedToken?.mintAddress
+          }&amount=${LAMPORTS_PER_SOL * Number(amount)}&slippageBps=50`
+        );
+
+        setQuoteReceived(quoteResponse);
+        setEstimatedReceived(
+          (
+            parseInt(quoteResponse.outAmount) / selectedToken?.tokenConversion
+          ).toFixed(2)
+        );
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError;
+
+      toast({
+        title: "Quote Request Failed",
+        description: (axiosError.response?.data as ErrorResponse).error,
+        variant: "destructive",
+      });
+    }
+  }
 
   return (
     <Card className="w-[350px]">
@@ -89,19 +157,19 @@ export function CryptoSwap() {
             <Label htmlFor="fromCrypto">From</Label>
             {/* TODO: Implement in Future */}
             {/* <div className="flex flex-col space-y-1.5">
-              <Select value={fromCrypto} onValueChange={setFromCrypto}>
-                <SelectTrigger id="fromCrypto">
-                  <SelectValue placeholder="Select cryptocurrency" />
-                </SelectTrigger>
-                <SelectContent position="popper">
-                  {cryptoOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div> */}
+                <Select value={fromCrypto} onValueChange={setFromCrypto}>
+                  <SelectTrigger id="fromCrypto">
+                    <SelectValue placeholder="Select cryptocurrency" />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    {cryptoOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div> */}
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="amount">Amount</Label>
               <Input
@@ -117,7 +185,7 @@ export function CryptoSwap() {
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={handleSwap}
+                // onClick={handleSwap}
               >
                 <ArrowDownUp className="h-4 w-4" />
                 <span className="sr-only">Swap currencies</span>
@@ -125,7 +193,10 @@ export function CryptoSwap() {
             </div>
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="toCrypto">To</Label>
-              <Select value={toCrypto} onValueChange={setToCrypto}>
+              <Select
+                value={toCrypto}
+                onValueChange={(val) => getTokenQuote(val)}
+              >
                 <SelectTrigger id="toCrypto">
                   <SelectValue placeholder="Select cryptocurrency" />
                 </SelectTrigger>
@@ -157,12 +228,16 @@ export function CryptoSwap() {
             setFromCrypto("");
             setToCrypto("");
             setAmount("");
-            setEstimatedReceived("0");
+            setEstimatedReceived("0.00");
           }}
         >
-          Cancel
+          Reset
         </Button>
-        <Button onClick={handleSubmit}>Swap</Button>
+        <ToolTip
+          buttonTitle="Swap"
+          tooltipContent="By default slippage is 0.5%"
+          onClick={handleSubmit}
+        />
       </CardFooter>
     </Card>
   );

@@ -25,7 +25,6 @@ import {
 
 export default function TransferCrypto() {
   const wallet = useWallet();
-  console.log(wallet);
 
   const { connection } = useConnection();
 
@@ -48,6 +47,7 @@ export default function TransferCrypto() {
         toPubkey: new PublicKey(recipient),
         lamports: amount * LAMPORTS_PER_SOL,
       };
+
       transaction.add(SystemProgram.transfer(transferInfo));
 
       await wallet.sendTransaction(transaction, connection);

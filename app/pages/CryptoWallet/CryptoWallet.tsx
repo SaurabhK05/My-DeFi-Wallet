@@ -208,7 +208,20 @@ export default function CryptoWallet() {
             value="swap_crypto"
             className="w-full max-w-4xl min-h-[500px]"
           >
-            <CryptoSwap />
+            <ConnectionProvider endpoint={endpoint}>
+              <WalletProvider wallets={[]} autoConnect>
+                <WalletModalProvider>
+                  <div
+                    className="bg-black"
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <WalletMultiButton />
+                    <WalletDisconnectButton />
+                  </div>
+                  <CryptoSwap />
+                </WalletModalProvider>
+              </WalletProvider>
+            </ConnectionProvider>
           </TabsContent>
         </Tabs>
       </main>
